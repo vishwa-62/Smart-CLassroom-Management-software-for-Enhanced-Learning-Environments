@@ -54,7 +54,19 @@ app.use('/api/marks', markRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/materials', materialRoutes);
 
-// Fallback 404 Handler
+// Serve Frontend Production Build (Unified Single Server Deployment)
+const path = require('path');
+const fs = require('fs');
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
+// Fallback 404 Handler for API routes
 app.use((req, res, next) => {
   res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.originalUrl}` });
 });
